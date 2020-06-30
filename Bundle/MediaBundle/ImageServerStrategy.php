@@ -59,7 +59,7 @@ class ImageServerStrategy implements StrategyInterface
 
         if($filename && $extension){
             $path       = sprintf("media/image/%s.%s", $filename, $extension);
-            $remotePath = Utils::getRemotePathByLocalPah($path);
+            $remotePath = Utils::getRemotePathByLocalPath($path);
 
             if ($width && $height) {
                 return sprintf("%s?w=%s&h=%s", $remotePath, $width, $height);
