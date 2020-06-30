@@ -99,7 +99,7 @@ class ImageServerAdapter extends AbstractAdapter
 
     public function updateStream($path, $resource, Config $config)
     {
-        throw new RuntimeException(sprintf('"%s" function is not implemented for "%s"', __FUNCTION__, $path));
+        return $this->writeStream($path, $resource, $config);
     }
 
     public function rename($path, $newpath)
@@ -131,7 +131,7 @@ class ImageServerAdapter extends AbstractAdapter
 
     public function createDir($dirname, Config $config)
     {
-        throw new RuntimeException(sprintf('"%s" function is not implemented"', __FUNCTION__));
+       return true;
     }
 
     public function setVisibility($path, $visibility)
@@ -141,11 +141,7 @@ class ImageServerAdapter extends AbstractAdapter
 
     public function has($path)
     {
-        if ($this->strategy->isEncoded($path)) {
-            return true;
-        }
-
-        return (bool)Utils::getRemotePathByLocalPah($path);
+        return (bool)Utils::getRemotePathByLocalPath($path);
     }
 
     public function read($path)

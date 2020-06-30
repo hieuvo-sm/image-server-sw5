@@ -9,9 +9,6 @@ class ImageServerStrategy implements StrategyInterface
 {
     public function normalize($path)
     {
-        // remove filesystem directories
-        $path = str_replace('//', '/', $path);
-
         // remove everything before /media/...
         preg_match('/.*((media\/(?:archive|image|music|pdf|temp|unknown|video|vector)(?:\/thumbnail)?).*\/((.+)\.(.+)))/', $path, $matches);
 
@@ -38,6 +35,7 @@ class ImageServerStrategy implements StrategyInterface
 
     private function buildMediaServerPath($path)
     {
+        $remotePath = '';
         $width = $height = 0;
         // retina
         if (preg_match("#media/image/(.*)_([\d]+)x([\d]+)(@2x)\.(.*)$#", $path, $matches)) {
@@ -54,15 +52,18 @@ class ImageServerStrategy implements StrategyInterface
         }
         else {
             $pathinfo  = pathinfo($path);
-            $filename  = $pathinfo['filename'];
-            $extension = $pathinfo['extension'];
+
+            $filename  = $pathinfo['filename'] ?: '';
+            $extension = $pathinfo['extension'] ?: '';
         }
 
-        $path       = sprintf("media/image/%s.%s", $filename, $extension);
-        $remotePath = Utils::getRemotePathByLocalPah($path);
+        if($filename && $extension){
+            $path       = sprintf("media/image/%s.%s", $filename, $extension);
+            $remotePath = Utils::getRemotePathByLocalPah($path);
 
-        if ($width && $height) {
-            return sprintf("%s?w=%s&h=%s", $remotePath, $width, $height);
+            if ($width && $height) {
+                return sprintf("%s?w=%s&h=%s", $remotePath, $width, $height);
+            }
         }
 
         return $remotePath ?: $path;

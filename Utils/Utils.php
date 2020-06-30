@@ -4,7 +4,24 @@ namespace SmImageServer\Utils;
 
 class Utils
 {
-    public static function getRemotePathByLocalPah(string $localPath)
+    public static function buildRemotePath(string $localPath)
+    {
+        $pathInfo     = pathinfo($localPath);
+        $baseFilename = $pathInfo['basename'];
+        $md5          = md5($baseFilename);
+        $remotePath   = implode("/", [$md5[0], substr($md5, 1, 2), $baseFilename]);
+
+        return $remotePath;
+    }
+
+    public static function deleteImageTransferByRemotePath(string $remotePath): int
+    {
+        return Shopware()->Db()->delete(
+            'sm_imageserver_transfer', 'remote_path = ' . Shopware()->Db()->quote($remotePath)
+        );
+    }
+
+    public static function getRemotePathByLocalPath(string $localPath)
     {
         $sql = <<<SQL
 SELECT remote_path 
@@ -37,12 +54,5 @@ SET local_path = ?,
 SQL;
 
         return Shopware()->Db()->executeQuery($sql, [$localPath, $remotePath, $remoteUuid]);
-    }
-
-    public static function deleteImageTransferByRemotePath(string $remotePath): int
-    {
-        return Shopware()->Db()->delete(
-            'sm_imageserver_transfer', 'remote_path = ' . Shopware()->Db()->quote($remotePath)
-        );
     }
 }
