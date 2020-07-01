@@ -114,7 +114,7 @@ class ImageServerAdapter extends AbstractAdapter
 
     public function delete($path)
     {
-        $uuid   = Utils::getUuidByLocalPath($path);
+        $uuid   = Utils::getUuidByRemotePath($path);
         $result = $this->imageServerClient->delete($uuid);
 
         if (!$result) {
@@ -141,13 +141,24 @@ class ImageServerAdapter extends AbstractAdapter
 
     public function has($path)
     {
+        if($this->strategy->isEncoded($path)){
+            return true;
+        }
+
         return (bool)Utils::getRemotePathByLocalPath($path);
     }
 
     public function read($path)
     {
+        $mediaUrl = Shopware()->Container()->getParameter('shopware.cdn.adapters.ImageServer.mediaUrl');
+        $mediaUrl = rtrim($mediaUrl, '/');
+
+        if (strpos($path, $mediaUrl) === false) {
+            $path = implode('/', [$mediaUrl, $path]);
+        }
+
         return [
-            'contents' => file_get_contents('https://bobshop-imageserver.scalecommerce.cloud/images/www.bobshop.com/4/8b/917941_1.jpg')
+            'contents' => file_get_contents($path)
         ];
     }
 
@@ -168,7 +179,6 @@ class ImageServerAdapter extends AbstractAdapter
 
     public function getSize($path)
     {
-
     }
 
     public function getMimetype($path)

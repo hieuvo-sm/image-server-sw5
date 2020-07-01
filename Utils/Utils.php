@@ -6,9 +6,22 @@ class Utils
 {
     public static function buildRemotePath(string $localPath)
     {
-        $pathInfo     = pathinfo($localPath);
-        $baseFilename = $pathInfo['basename'];
+        $parsedPath   = parse_url($localPath);
+        $path         = $parsedPath['path'] ?? '';
+
+        if(!$path) {
+            return  $localPath;
+        }
+
+        $queryString  = $parsedPath['query'] ?? '';
+        $pathInfo     = pathinfo($path);
+        $baseFilename = $pathInfo['basename'] ;
         $md5          = md5($baseFilename);
+
+        if($queryString) {
+            $baseFilename .= '?' . $queryString;
+        }
+
         $remotePath   = implode("/", [$md5[0], substr($md5, 1, 2), $baseFilename]);
 
         return $remotePath;
@@ -32,15 +45,15 @@ SQL;
         return Shopware()->Db()->fetchOne($sql, ['local_path' => $localPath]);
     }
 
-    public static function getUuidByLocalPath(string $localPath)
+    public static function getUuidByRemotePath(string $remotePath)
     {
         $sql = <<<SQL
 SELECT remote_uuid 
 FROM sm_imageserver_transfer 
-WHERE local_path = :local_path
+WHERE remote_path = :remote_path
 SQL;
 
-        return Shopware()->Db()->fetchOne($sql, ['local_path' => $localPath]);
+        return Shopware()->Db()->fetchOne($sql, ['remote_path' => $remotePath]);
     }
 
     public static function insertImageTransfer(string $localPath, string $remotePath, $remoteUuid)
